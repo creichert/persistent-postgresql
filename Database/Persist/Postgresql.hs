@@ -57,6 +57,7 @@ import qualified Data.ByteString.Char8 as B8
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
 import qualified Blaze.ByteString.Builder.Char8 as BBB
+import qualified Blaze.ByteString.Builder       as BB
 
 import Data.Text (Text)
 import Data.Aeson
@@ -289,7 +290,10 @@ instance PGFF.FromField Unknown where
         Just dat -> return (Unknown dat)
 
 instance PGTF.ToField Unknown where
-    toField (Unknown a) = PGTF.Escape a
+    -- TODO adapt type to handle the (unsafe) non-escaped possibility
+    --
+    -- toField (Unknown a) = PGTF.Escape a
+    toField (Unknown a) = PGTF.Plain (BB.fromByteString a)
 
 type Getter a = PGFF.FieldParser a
 
@@ -326,7 +330,11 @@ builtinGetters = I.fromList
     , (k PS.jsonb,       convertPV (PersistByteString . unUnknown))
     , (k PS.unknown,     convertPV (PersistByteString . unUnknown))
 
-
+    , (k PS.point,       convertPV (PersistByteString . unUnknown))
+    , (k PS.polygon,     convertPV (PersistByteString . unUnknown))
+    , (k PS.lseg,        convertPV (PersistByteString . unUnknown))
+    , (k PS.box,         convertPV (PersistByteString . unUnknown))
+    , (k PS.circle,      convertPV (PersistByteString . unUnknown))
 
     -- array types: same order as above
     , (1000,             listOf PersistBool)
